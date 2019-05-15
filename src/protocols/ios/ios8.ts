@@ -20,6 +20,7 @@ export class IOS8Protocol extends IOSProtocol {
 
             return Promise.resolve(msg);
         });
+        this._target.addMessageFilter('tools::DOM.setInspectedNode', (msg) => { msg.method = 'Console.addInspectedNode'; return Promise.resolve(msg); });
     }
 
     protected mapSelectorList (selectorList): void {

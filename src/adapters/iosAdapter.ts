@@ -18,6 +18,7 @@ import { ITarget, IIOSDeviceTarget, IIOSProxySettings } from './adapterInterface
 import { IOSProtocol } from '../protocols/ios/ios';
 import { IOS8Protocol } from '../protocols/ios/ios8';
 import { IOS9Protocol } from '../protocols/ios/ios9';
+import { IOS12_2Protocol } from "../protocols/ios/ios12_2";
 
 export class IOSAdapter extends AdapterCollection {
     private _proxySettings: IIOSProxySettings;
@@ -169,16 +170,7 @@ export class IOSAdapter extends AdapterCollection {
         debug(`iOSAdapter.getDeviceInfoPath`)
         return new Promise((resolve, reject) => {
             if (os.platform() === 'win32') {
-                try {
-                  const proxy = path.resolve(
-                    path.dirname(which.sync("remotedebug_ios_webkit_adapter")),
-                    "node_modules/vs-libimobile/lib/ideviceinfo.exe"
-                  );
-                    fs.statSync(proxy);
-                    resolve(proxy);
-                } catch (e) {
-                    reject(`ideviceinfo not found. Please install 'npm install -g vs-libimobile'`)
-                }
+                resolve(path.resolve(__dirname, '../../win64_bin/ideviceinfo.exe'));
             } else if (os.platform() === 'darwin' || os.platform() === 'linux') {
                 which('ideviceinfo', function (err, resolvedPath) {
                     if (err) {
@@ -209,11 +201,15 @@ export class IOSAdapter extends AdapterCollection {
         const parts = version.split('.');
         if (parts.length > 0) {
             const major = parseInt(parts[0], 10);
+            const minor = parseInt(parts[1], 10);
             if (major <= 8) {
                 return new IOS8Protocol(target);
             }
+            if (major < 12 || major === 12 && minor < 2) {
+                return new IOS9Protocol(target)
+            }
         }
 
-        return new IOS9Protocol(target);
+        return new IOS12_2Protocol(target);
     }
 }
