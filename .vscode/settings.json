@@ -1,3 +1,5 @@
 {
-  "typescript.check.workspaceVersion": false
+  "typescript.check.workspaceVersion": false,
+  "typescript.tsdk": "node_modules\\typescript\\lib",
+  "editor.formatOnSave": false
 }

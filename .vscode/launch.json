@@ -8,15 +8,8 @@
       "type": "node",
       "request": "launch",
       "name": "Launch via NPM",
-      "runtimeExecutable": "npm",
-      "windows": {
-        "runtimeExecutable": "npm.cmd"
-      },
-      "runtimeArgs": [
-        "run-script",
-        "start"
-      ],
-      "protocol": "inspector"
+      "runtimeArgs": ["-r", "ts-node/register"],
+      "args": ["${workspaceFolder}/src/index.ts"]
     }
   ]
 }
