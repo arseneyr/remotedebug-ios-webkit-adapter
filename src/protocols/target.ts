@@ -102,7 +102,7 @@ export class Target extends EventEmitter {
             };
 
             this._adapterRequestMap.set(request.id, { resolve: resolve, reject: reject });
-            this.sendToTarget(JSON.stringify(request));
+            this.sendToTarget(request);
         });
     }
 
@@ -154,18 +154,23 @@ export class Target extends EventEmitter {
             sequence.then((filteredMessage) => {
                 // Only send on the message if it wasn't completely filtered out
                 if (filteredMessage) {
-                    rawMessage = JSON.stringify(filteredMessage);
-                    this.sendToTarget(rawMessage);
+                    this.sendToTarget(filteredMessage);
                 }
             });
         } else {
             // Pass it on to the target
-            this.sendToTarget(rawMessage);
+            this.sendToTarget(msg);
         }
     }
 
     private onMessageFromTarget(rawMessage: string): void {
-        const msg = JSON.parse(rawMessage);
+        let msg = JSON.parse(rawMessage);
+
+        if ('method' in msg && msg.method === 'Target.dispatchMessageFromTarget') {
+            msg = JSON.parse(msg.params.message);
+        } else {
+            return;
+        }
 
         if ('id' in msg) {
             if (this._toolRequestMap.has(msg.id)) {
@@ -194,7 +199,7 @@ export class Target extends EventEmitter {
                     });
                 } else {
                     // Pass it on to the tools
-                    this.sendToTools(rawMessage);
+                    this.sendToTools(JSON.stringify(msg));
                 }
             } else if (this._adapterRequestMap.has(msg.id)) {
                 // Reply to adapter request
@@ -230,7 +235,7 @@ export class Target extends EventEmitter {
                 });
             } else {
                 // Pass it on to the tools
-                this.sendToTools(rawMessage);
+                this.sendToTools(JSON.stringify(msg));
             }
         }
     }
@@ -243,8 +248,16 @@ export class Target extends EventEmitter {
         }
     }
 
-    private sendToTarget(rawMessage: string): void {
-        debug(`sendToTarget.${rawMessage}`);
+    private sendToTarget(message: {id: number, method: string, params: any}): void {
+        debug(`sendToTarget.${message}`);
+        const rawMessage = JSON.stringify({
+            method: 'Target.sendMessageToTarget',
+            params: {
+                targetId: 'page-1',
+                message: JSON.stringify(message)
+            },
+            id: message.id
+        })
 
         // Make sure the target socket can receive messages
         if (this.isSocketConnected(this._wsTarget)) {

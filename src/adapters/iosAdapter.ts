@@ -169,14 +169,16 @@ export class IOSAdapter extends AdapterCollection {
         debug(`iOSAdapter.getDeviceInfoPath`)
         return new Promise((resolve, reject) => {
             if (os.platform() === 'win32') {
-                const proxy = path.resolve(__dirname, process.env.USERPROFILE + '/AppData/Roaming/npm/node_modules/vs-libimobile/lib/ideviceinfo.exe');
                 try {
+                  const proxy = path.resolve(
+                    path.dirname(which.sync("remotedebug_ios_webkit_adapter")),
+                    "node_modules/vs-libimobile/lib/ideviceinfo.exe"
+                  );
                     fs.statSync(proxy);
                     resolve(proxy);
                 } catch (e) {
                     reject(`ideviceinfo not found. Please install 'npm install -g vs-libimobile'`)
                 }
-
             } else if (os.platform() === 'darwin' || os.platform() === 'linux') {
                 which('ideviceinfo', function (err, resolvedPath) {
                     if (err) {

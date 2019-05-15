@@ -57,7 +57,7 @@ export abstract class IOSProtocol extends ProtocolAdapter {
 
         this._target.addMessageFilter('tools::DOM.enable', (msg) => this.onDomEnable(msg));
         this._target.addMessageFilter('tools::DOM.setInspectMode', (msg) => this.onSetInspectMode(msg));
-        this._target.addMessageFilter('tools::DOM.setInspectedNode', (msg) => { msg.method = 'Console.addInspectedNode'; return Promise.resolve(msg); });
+        //this._target.addMessageFilter('tools::DOM.setInspectedNode', (msg) => { msg.method = 'Console.addInspectedNode'; return Promise.resolve(msg); });
         this._target.addMessageFilter('tools::DOM.pushNodesByBackendIdsToFrontend', (msg) => this.onPushNodesByBackendIdsToFrontend(msg));
         this._target.addMessageFilter('tools::DOM.getBoxModel', (msg) => this.onGetBoxModel(msg));
         this._target.addMessageFilter('tools::DOM.getNodeForLocation', (msg) => this.onGetNodeForLocation(msg));
