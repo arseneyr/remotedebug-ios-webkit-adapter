@@ -19,6 +19,7 @@ export class Target extends EventEmitter {
     private _adapterRequestMap: Map<number, { resolve: (any) => void, reject: (any) => void }>;
     private _requestId: number;
     private _id: string;
+    private _pageId: string;
 
     constructor(targetId: string, data?: ITarget) {
         super();
@@ -57,11 +58,6 @@ export class Target extends EventEmitter {
         });
         this._wsTarget.on('open', () => {
             Logger.log(`Connection established to ${url}`);
-            this._isConnected = true;
-            for (let i = 0; i < this._messageBuffer.length; i++) {
-                this.onMessageFromTools(this._messageBuffer[i]);
-            }
-            this._messageBuffer = [];
         });
         this._wsTarget.on('close', () => {
             Logger.log('Socket is closed');
@@ -168,6 +164,9 @@ export class Target extends EventEmitter {
 
         if ('method' in msg && msg.method === 'Target.dispatchMessageFromTarget') {
             msg = JSON.parse(msg.params.message);
+        } else if ('method' in msg && msg.method === 'Target.targetCreated') {
+            this.onTargetCreated(msg.params.targetInfo.targetId);
+            return;
         } else {
             return;
         }
@@ -253,7 +252,7 @@ export class Target extends EventEmitter {
         const rawMessage = JSON.stringify({
             method: 'Target.sendMessageToTarget',
             params: {
-                targetId: 'page-1',
+                targetId: this._pageId,
                 message: JSON.stringify(message)
             },
             id: message.id
@@ -267,6 +266,17 @@ export class Target extends EventEmitter {
             this._wsTarget = null;
             this.emit('socketClosed', this._id);
         }
+    }
+
+    private onTargetCreated(pageId: string) {
+        Logger.log(`Target ${pageId} created`);
+        this._pageId = pageId;
+
+        this._isConnected = true;
+        for (let i = 0; i < this._messageBuffer.length; i++) {
+            this.onMessageFromTools(this._messageBuffer[i]);
+        }
+        this._messageBuffer = [];
     }
 
     private isSocketConnected(ws: WebSocket): boolean {
